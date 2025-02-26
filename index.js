@@ -10,7 +10,11 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://task-manager-13e7e.web.app"],
+    origin: [
+      "http://localhost:5173",
+      "task-manager-server-side-five.vercel.app",
+      "https://task-manager-13e7e.web.app",
+    ],
     credentials: true,
   },
 });
@@ -19,7 +23,11 @@ const port = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://task-manager-13e7e.web.app"],
+    origin: [
+      "http://localhost:5173",
+      "task-manager-server-side-five.vercel.app",
+      "https://task-manager-13e7e.web.app",
+    ],
     credentials: true,
   })
 );
@@ -36,7 +44,6 @@ const client = new MongoClient(uri, {
 });
 
 let tasksCollection;
-
 async function connectDB() {
   try {
     await client.connect();
@@ -47,9 +54,8 @@ async function connectDB() {
     console.error("MongoDB connection error:", error);
   }
 }
-connectDB();
+// connectDB();
 
-/** ========== WebSocket Events ========= */
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
@@ -58,7 +64,6 @@ io.on("connection", (socket) => {
   });
 });
 
-/** ========== CREATE (POST) ========= */
 app.post("/tasks", async (req, res) => {
   try {
     const task = req.body;
@@ -71,7 +76,6 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
-/** ========== READ (GET) ========= */
 app.get("/tasks", async (req, res) => {
   try {
     const tasks = await tasksCollection.find().toArray();
@@ -82,7 +86,6 @@ app.get("/tasks", async (req, res) => {
   }
 });
 
-/** ========== READ (GET by ID) ========= */
 app.get("/tasks/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -97,7 +100,6 @@ app.get("/tasks/:id", async (req, res) => {
   }
 });
 
-/** ========== UPDATE (PUT) ========= */
 app.put("/tasks/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -118,7 +120,6 @@ app.put("/tasks/:id", async (req, res) => {
   }
 });
 
-/** ========== DELETE (DELETE) ========= */
 app.delete("/tasks/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -136,12 +137,15 @@ app.delete("/tasks/:id", async (req, res) => {
   }
 });
 
-/** ========== Home Route ========= */
 app.get("/", (req, res) => {
   res.send("Task Manager server is running");
 });
 
-/** ========== Start Server ========= */
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+async function startServer() {
+  await connectDB();
+  server.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
+
+startServer();
